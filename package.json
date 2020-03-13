@@ -1,7 +1,9 @@
 {
   "private": true,
   "scripts": {
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server",
+    "clean": "rm -rf src/bin src/obj src/.fake/ .ionide/ .fable/ .paket/ paket-files/ node_modules",
+    "preinstall": "paket install"
   },
   "dependencies": {
     "@babel/core": "^7.8.7",
