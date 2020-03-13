@@ -13,7 +13,7 @@ module.exports = {
   },
   devServer: {
     contentBase: "./public",
-    port: 7126
+    port: process.env.PORT || 8080
   },
   module: {
     rules: [
