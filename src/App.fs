@@ -23,26 +23,39 @@ let EP = "EP"
 let SN = "SN"
 let T1 = "T1"
 let ER = "ER"
+let VL = "VL"
+let JO = "JO"
 
-let RISTagParser =
-  (Parsimmon.str TY)
-  |> Parsimmon.orTry (Parsimmon.str AU)
+
+let RISOrderLessTagParser =
+  Parsimmon.str AU
   |> Parsimmon.orTry (Parsimmon.str PY)
   |> Parsimmon.orTry (Parsimmon.str SP)
   |> Parsimmon.orTry (Parsimmon.str EP)
   |> Parsimmon.orTry (Parsimmon.str SN)
   |> Parsimmon.orTry (Parsimmon.str T1)
-  |> Parsimmon.orTry (Parsimmon.str ER)
+  |> Parsimmon.orTry (Parsimmon.str VL)
+  |> Parsimmon.orTry (Parsimmon.str JO)
+// |> Parsimmon.orTry (Parsimmon.str ER)
 
-let RISFieldParser =
-  Parsimmon.seq5 RISTagParser (Parsimmon.optionalWhitespace) (Parsimmon.str "-") (Parsimmon.optionalWhitespace)
+let RISFieldParser tagParser =
+  Parsimmon.seq5 tagParser (Parsimmon.optionalWhitespace) (Parsimmon.str "-") (Parsimmon.optionalWhitespace)
     (Parsimmon.regex ".*")
   |> Parsimmon.map (fun tuple ->
        { tag = _fst tuple
          value = fifth tuple })
 
 let RISRecordParser =
-  Parsimmon.seperateByAtLeastOne (Parsimmon.str "\n") RISFieldParser
+  Parsimmon.seq3
+    (RISFieldParser(Parsimmon.str TY)
+     |> Parsimmon.skip (Parsimmon.str "\n"))
+    (((Parsimmon.seperateBy (Parsimmon.str "\n") (RISFieldParser RISOrderLessTagParser)))
+     |> Parsimmon.skip (Parsimmon.str "\n")) (RISFieldParser(Parsimmon.str ER))
+  |> Parsimmon.map (fun (ty, orderless, er) ->
+       Seq.concat
+         [ [ ty ]
+           orderless |> Seq.toList
+           [ er ] ])
 
 let useInputValue (initialValue: string) =
   let (value, setValue) = useState (initialValue)
