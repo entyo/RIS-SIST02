@@ -23,7 +23,7 @@ let RISFieldParser tagParser =
     (tagParser
     |> Parsimmon.skip (Parsimmon.optionalWhitespace)
     |> Parsimmon.skip (Parsimmon.str "-"))
-    (Parsimmon.regex(".*").orTry(Parsimmon.optionalWhitespace))
+    (Parsimmon.regex(".*").orTry(Parsimmon.optionalWhitespace).map(fun s -> s.Trim()))
   |> Parsimmon.skip ((Parsimmon.str "\n").orTry(Parsimmon.endOfFile))
   |> Parsimmon.map (fun tuple ->
        { tag = fst tuple
