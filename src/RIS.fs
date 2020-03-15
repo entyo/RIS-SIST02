@@ -255,7 +255,7 @@ let RISHeaderFieldParser headerParser =
   Parsimmon.seq2
     (headerParser
      |> Parsimmon.skip (Parsimmon.optionalWhitespace)
-     |> Parsimmon.skip (Parsimmon.str ":."))
+     |> Parsimmon.skip (Parsimmon.str ":"))
     (Parsimmon.regex(".*").orTry(Parsimmon.optionalWhitespace))
   |> Parsimmon.skip ((Parsimmon.str "\n"))
 
