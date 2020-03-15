@@ -3,9 +3,7 @@ module App
 open Fable.React
 open Fable.Core.JsInterop
 open Fable.Parsimmon
-
-let _fst (a, _, _, _, _) = a
-let fifth (_, _, _, _, e) = e
+open RIS
 
 type RISField =
   { tag: string
@@ -15,62 +13,25 @@ type SetState<'t> = 't -> unit
 
 let useState<'t> (t: 't): 't * SetState<'t> = import "useState" "react"
 
-// 参照のタイプ（最初のタグである必要があります）
-let TY = "TY"
-// 著者
-let AU = "AU"
-// 第一著者
-let A1 = "A1"
-// 副著者
-let A2 = "A2"
-// 三次著者
-let A3 = "A3"
-// 	補助著者
-let A4 = "A4"
-// 概要
-let AB = "AB"
-// 著者アドレス
-let AD = "AD"
-// 受入番号
-let AN = "AN"
-// アーカイブ内の場所
-let AV = "AV"
-let BT = "BT"
-let PY = "PY"
-let SP = "SP"
-let EP = "EP"
-let SN = "SN"
-let TI = "TI"
-let T1 = "T1"
-let ER = "ER"
-let VL = "VL"
-let JO = "JO"
-
-let ConvertedTag = [ TY; TI; T1; AU; PY; SP; EP; ER; VL; JO ]
-
 let RISOrderLessTagParser =
-  Parsimmon.str AU
-  |> Parsimmon.orTry (Parsimmon.str PY)
-  |> Parsimmon.orTry (Parsimmon.str SP)
-  |> Parsimmon.orTry (Parsimmon.str EP)
-  |> Parsimmon.orTry (Parsimmon.str SN)
-  |> Parsimmon.orTry (Parsimmon.str T1)
-  |> Parsimmon.orTry (Parsimmon.str VL)
-  |> Parsimmon.orTry (Parsimmon.str JO)
+  OrderLessTags
+  |> List.map Parsimmon.str
+  |> Parsimmon.choose
 
 let RISFieldParser tagParser =
-  Parsimmon.seq5 tagParser (Parsimmon.optionalWhitespace) (Parsimmon.str "-") (Parsimmon.optionalWhitespace)
-    (Parsimmon.regex ".*")
+  Parsimmon.seq2
+    (tagParser
+    |> Parsimmon.skip (Parsimmon.optionalWhitespace)
+    |> Parsimmon.skip (Parsimmon.str "-"))
+    (Parsimmon.regex(".*").orTry(Parsimmon.optionalWhitespace))
+  |> Parsimmon.skip ((Parsimmon.str "\n").orTry(Parsimmon.endOfFile))
   |> Parsimmon.map (fun tuple ->
-       { tag = _fst tuple
-         value = fifth tuple })
+       { tag = fst tuple
+         value = snd tuple })
 
 let RISRecordParser =
-  Parsimmon.seq3
-    (RISFieldParser(Parsimmon.str TY)
-     |> Parsimmon.skip (Parsimmon.str "\n"))
-    (((Parsimmon.seperateBy (Parsimmon.str "\n") (RISFieldParser RISOrderLessTagParser)))
-     |> Parsimmon.skip (Parsimmon.str "\n")) (RISFieldParser(Parsimmon.str ER))
+  Parsimmon.seq3 (RISFieldParser(Parsimmon.str TY)) (((Parsimmon.many (RISFieldParser RISOrderLessTagParser))))
+    (RISFieldParser(Parsimmon.str ER))
   |> Parsimmon.map (fun (ty, orderless, er) ->
        Seq.concat
          [ [ ty ]
@@ -103,7 +64,7 @@ let inputRIS (_: obj) =
         [ Props.Value value
           Props.DOMAttr.OnChange onChange
           Props.Placeholder placeholder
-          Props.Rows 8
+          Props.Rows 15
           Props.Class "ris-input" ] []
       button [ Props.DOMAttr.OnClick(fun _ -> resetValue()) ] [ str "消去" ] ]
 
