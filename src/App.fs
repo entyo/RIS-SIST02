@@ -20,7 +20,8 @@ let useInputValue (initialValue: string) =
     if result.status then
       let grouped =
         (result.value
-         |> Seq.filter (fun r -> (r.value = "" || System.Text.RegularExpressions.Regex.IsMatch(r.value, "\s+")) |> not)
+         |> Seq.filter (fun r ->
+              (r.value = "" || System.Text.RegularExpressions.Regex.IsMatch(r.value, @"^\s+$")) |> not)
          |> Seq.groupBy (fun v ->
               match v.tag with
               | "T1"
@@ -36,60 +37,68 @@ let useInputValue (initialValue: string) =
 
       let authorPart =
         grouped
-        |> Seq.find (fun g -> (fst g) = "author")
-        |> snd
-        |> Seq.map (fun r -> r.value + ".")
-        |> String.concat "; "
+        |> Seq.tryFind (fun g -> (fst g) = "author")
+        |> Option.map snd
+        |> Option.map (Seq.map (fun r -> r.value))
+        |> Option.map (String.concat ".; ")
 
       let titlePart =
         grouped
-        |> Seq.find (fun g -> (fst g) = "title")
-        |> snd
-        |> Seq.map (fun r -> r.value)
-        |> String.concat ": "
+        |> Seq.tryFind (fun g -> (fst g) = "title")
+        |> Option.map snd
+        |> Option.map (Seq.map (fun r -> r.value))
+        |> Option.map (String.concat ": ")
 
-      printfn "titlePart: %s" titlePart
       let journalPart =
         grouped
-        |> Seq.find (fun g -> (fst g) = "journal")
-        |> snd
-        |> Seq.map (fun r -> r.value)
-        |> Seq.head
+        |> Seq.tryFind (fun g -> (fst g) = "journal")
+        |> Option.map snd
+        |> Option.map (Seq.map (fun r -> r.value))
+        |> Option.bind (Seq.tryHead)
       // year, volume, issue, start, end
       let year =
         grouped
-        |> Seq.find (fun g -> (fst g) = "year")
-        |> snd
-        |> Seq.map (fun r -> r.value)
-        |> Seq.head
+        |> Seq.tryFind (fun g -> (fst g) = "year")
+        |> Option.map snd
+        |> Option.map (Seq.map (fun r -> r.value))
+        |> Option.bind (Seq.tryHead)
       let volume =
         grouped
-        |> Seq.find (fun g -> (fst g) = "volume")
-        |> snd
-        |> Seq.map (fun r -> r.value)
-        |> Seq.head
+        |> Seq.tryFind (fun g -> (fst g) = "volume")
+        |> Option.map snd
+        |> Option.map (Seq.map (fun r -> r.value))
+        |> Option.bind (Seq.tryHead)
       let issue =
         grouped
-        |> Seq.find (fun g -> (fst g) = "issue")
-        |> snd
-        |> Seq.map (fun r -> r.value)
-        |> Seq.head
+        |> Seq.tryFind (fun g -> (fst g) = "issue")
+        |> Option.map snd
+        |> Option.map (Seq.map (fun r -> r.value))
+        |> Option.bind (Seq.tryHead)
+
       let startp =
         grouped
-        |> Seq.find (fun g -> (fst g) = "start")
-        |> snd
-        |> Seq.map (fun r -> r.value)
-        |> Seq.head
+        |> Seq.tryFind (fun g -> (fst g) = "start")
+        |> Option.map snd
+        |> Option.map (Seq.map (fun r -> r.value))
+        |> Option.bind (Seq.tryHead)
+
       let endp =
         grouped
-        |> Seq.find (fun g -> (fst g) = "end")
-        |> snd
-        |> Seq.map (fun r -> r.value)
-        |> Seq.head
+        |> Seq.tryFind (fun g -> (fst g) = "end")
+        |> Option.map snd
+        |> Option.map (Seq.map (fun r -> r.value))
+        |> Option.bind (Seq.tryHead)
 
-      let bibPart = sprintf "%s, %s(%s), p.%s-%s." year volume issue startp endp
-
-      let result = sprintf "%s %s. %s. %s" authorPart titlePart journalPart bibPart
+      let bibPart =
+        sprintf "%s, %s(%s), p.%s-%s." (year |> Option.defaultValue "YYYY") (volume |> Option.defaultValue "V")
+          (issue |> Option.defaultValue "I") (startp |> Option.defaultValue "S") (endp |> Option.defaultValue "E")
+      // https://jipsti.jst.go.jp/sist/handbook/sist02sup/sist02sup.htm#5.1.1
+      let result =
+        String.concat ". "
+          [ (authorPart |> Option.defaultValue "A")
+            (titlePart |> Option.defaultValue "T")
+            (journalPart |> Option.defaultValue "J")
+            bibPart ]
       printfn "%s" result
     setValue (value)
 
