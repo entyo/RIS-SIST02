@@ -15,17 +15,38 @@ type SetState<'t> = 't -> unit
 
 let useState<'t> (t: 't): 't * SetState<'t> = import "useState" "react"
 
+// 参照のタイプ（最初のタグである必要があります）
 let TY = "TY"
+// 著者
 let AU = "AU"
+// 第一著者
+let A1 = "A1"
+// 副著者
+let A2 = "A2"
+// 三次著者
+let A3 = "A3"
+// 	補助著者
+let A4 = "A4"
+// 概要
+let AB = "AB"
+// 著者アドレス
+let AD = "AD"
+// 受入番号
+let AN = "AN"
+// アーカイブ内の場所
+let AV = "AV"
+let BT = "BT"
 let PY = "PY"
 let SP = "SP"
 let EP = "EP"
 let SN = "SN"
+let TI = "TI"
 let T1 = "T1"
 let ER = "ER"
 let VL = "VL"
 let JO = "JO"
 
+let ConvertedTag = [ TY; TI; T1; AU; PY; SP; EP; ER; VL; JO ]
 
 let RISOrderLessTagParser =
   Parsimmon.str AU
@@ -36,7 +57,6 @@ let RISOrderLessTagParser =
   |> Parsimmon.orTry (Parsimmon.str T1)
   |> Parsimmon.orTry (Parsimmon.str VL)
   |> Parsimmon.orTry (Parsimmon.str JO)
-// |> Parsimmon.orTry (Parsimmon.str ER)
 
 let RISFieldParser tagParser =
   Parsimmon.seq5 tagParser (Parsimmon.optionalWhitespace) (Parsimmon.str "-") (Parsimmon.optionalWhitespace)
