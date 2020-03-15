@@ -18,22 +18,79 @@ let useInputValue (initialValue: string) =
     let awesomeParser = (Parsimmon.seq2 headerRecordsPerser RISRecordParser) |> Parsimmon.map snd
     let result = awesomeParser.parse value
     if result.status then
-      let grouped = (result.value |> Seq.groupBy (fun v -> 
-        match v.tag with
-        | "T1" | "TI" -> "title"
-        | "AU" -> "author"
-        | "PY" -> "year"
-        | "JO" -> "journal"
-        | "VL" -> "volume"
-        | "IS" -> "issue"
-        | "SP" -> "start"
-        | "EP" -> "end"
-        | _ -> ""
-      ))
-      grouped |> Seq.iter (fun g -> 
-        printfn "# %s" (fst g)
-        (snd g) |> Seq.iter (fun v -> printfn "%s" v.value)
-      )
+      let grouped =
+        (result.value
+         |> Seq.filter (fun r -> (r.value = "" || System.Text.RegularExpressions.Regex.IsMatch(r.value, "\s+")) |> not)
+         |> Seq.groupBy (fun v ->
+              match v.tag with
+              | "T1"
+              | "TI" -> "title"
+              | "AU" -> "author"
+              | "PY" -> "year"
+              | "JO" -> "journal"
+              | "VL" -> "volume"
+              | "IS" -> "issue"
+              | "SP" -> "start"
+              | "EP" -> "end"
+              | _ -> "others"))
+
+      let authorPart =
+        grouped
+        |> Seq.find (fun g -> (fst g) = "author")
+        |> snd
+        |> Seq.map (fun r -> r.value + ".")
+        |> String.concat "; "
+
+      let titlePart =
+        grouped
+        |> Seq.find (fun g -> (fst g) = "title")
+        |> snd
+        |> Seq.map (fun r -> r.value)
+        |> String.concat ": "
+
+      printfn "titlePart: %s" titlePart
+      let journalPart =
+        grouped
+        |> Seq.find (fun g -> (fst g) = "journal")
+        |> snd
+        |> Seq.map (fun r -> r.value)
+        |> Seq.head
+      // year, volume, issue, start, end
+      let year =
+        grouped
+        |> Seq.find (fun g -> (fst g) = "year")
+        |> snd
+        |> Seq.map (fun r -> r.value)
+        |> Seq.head
+      let volume =
+        grouped
+        |> Seq.find (fun g -> (fst g) = "volume")
+        |> snd
+        |> Seq.map (fun r -> r.value)
+        |> Seq.head
+      let issue =
+        grouped
+        |> Seq.find (fun g -> (fst g) = "issue")
+        |> snd
+        |> Seq.map (fun r -> r.value)
+        |> Seq.head
+      let startp =
+        grouped
+        |> Seq.find (fun g -> (fst g) = "start")
+        |> snd
+        |> Seq.map (fun r -> r.value)
+        |> Seq.head
+      let endp =
+        grouped
+        |> Seq.find (fun g -> (fst g) = "end")
+        |> snd
+        |> Seq.map (fun r -> r.value)
+        |> Seq.head
+
+      let bibPart = sprintf "%s, %s(%s), p.%s-%s." year volume issue startp endp
+
+      let result = sprintf "%s %s. %s. %s" authorPart titlePart journalPart bibPart
+      printfn "%s" result
     setValue (value)
 
   let resetValue() = setValue (System.String.Empty)

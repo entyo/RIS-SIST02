@@ -89,7 +89,7 @@ let M3 = "M3"
 let N1 = "N1"
 // アブストラクト
 let N2 = "N2"
-// 巻数
+// 巻数(number of volumes)
 let NV = "NV"
 // Original Publication
 let OP = "OP"
@@ -255,8 +255,7 @@ let RISHeaderFieldParser headerParser =
   Parsimmon.seq2
     (headerParser
      |> Parsimmon.skip (Parsimmon.optionalWhitespace)
-     |> Parsimmon.skip (Parsimmon.str ":"))
-    (Parsimmon.regex(".*").orTry(Parsimmon.optionalWhitespace))
+     |> Parsimmon.skip (Parsimmon.str ":")) (Parsimmon.regex(".*").orTry(Parsimmon.optionalWhitespace))
   |> Parsimmon.skip ((Parsimmon.str "\n"))
 
 let RISFieldParser tagParser =
