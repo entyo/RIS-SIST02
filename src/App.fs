@@ -17,10 +17,23 @@ let useInputValue (initialValue: string) =
     let headerRecordsPerser = (HeaderParser |> RISHeaderFieldParser) |> Parsimmon.many
     let awesomeParser = (Parsimmon.seq2 headerRecordsPerser RISRecordParser) |> Parsimmon.map snd
     let result = awesomeParser.parse value
-    if result.status
-    then result.value |> Seq.iter (fun v -> printfn "%s: %s" (v.tag) (v.value))
-    else printfn "Failed to parse"
-
+    if result.status then
+      let grouped = (result.value |> Seq.groupBy (fun v -> 
+        match v.tag with
+        | "T1" | "TI" -> "title"
+        | "AU" -> "author"
+        | "PY" -> "year"
+        | "JO" -> "journal"
+        | "VL" -> "volume"
+        | "IS" -> "issue"
+        | "SP" -> "start"
+        | "EP" -> "end"
+        | _ -> ""
+      ))
+      grouped |> Seq.iter (fun g -> 
+        printfn "# %s" (fst g)
+        (snd g) |> Seq.iter (fun v -> printfn "%s" v.value)
+      )
     setValue (value)
 
   let resetValue() = setValue (System.String.Empty)
