@@ -5,45 +5,18 @@ open Fable.Core.JsInterop
 open Fable.Parsimmon
 open RIS
 
-type RISField =
-  { tag: string
-    value: string }
-
 type SetState<'t> = 't -> unit
 
 let useState<'t> (t: 't): 't * SetState<'t> = import "useState" "react"
-
-let RISOrderLessTagParser =
-  OrderLessTags
-  |> List.map Parsimmon.str
-  |> Parsimmon.choose
-
-let RISFieldParser tagParser =
-  Parsimmon.seq2
-    (tagParser
-    |> Parsimmon.skip (Parsimmon.optionalWhitespace)
-    |> Parsimmon.skip (Parsimmon.str "-"))
-    (Parsimmon.regex(".*").orTry(Parsimmon.optionalWhitespace).map(fun s -> s.Trim()))
-  |> Parsimmon.skip ((Parsimmon.str "\n").orTry(Parsimmon.endOfFile))
-  |> Parsimmon.map (fun tuple ->
-       { tag = fst tuple
-         value = snd tuple })
-
-let RISRecordParser =
-  Parsimmon.seq3 (RISFieldParser(Parsimmon.str TY)) (((Parsimmon.many (RISFieldParser RISOrderLessTagParser))))
-    (RISFieldParser(Parsimmon.str ER))
-  |> Parsimmon.map (fun (ty, orderless, er) ->
-       Seq.concat
-         [ [ ty ]
-           orderless |> Seq.toList
-           [ er ] ])
 
 let useInputValue (initialValue: string) =
   let (value, setValue) = useState (initialValue)
 
   let onChange (e: Browser.Types.Event) =
     let value: string = e.target?value
-    let result = RISRecordParser.parse value
+    let headerRecordsPerser = (HeaderParser |> RISHeaderFieldParser) |> Parsimmon.many
+    let awesomeParser = (Parsimmon.seq2 headerRecordsPerser RISRecordParser) |> Parsimmon.map snd
+    let result = awesomeParser.parse value
     if result.status
     then result.value |> Seq.iter (fun v -> printfn "%s: %s" (v.tag) (v.value))
     else printfn "Failed to parse"

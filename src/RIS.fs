@@ -1,5 +1,7 @@
 module RIS
 
+open Fable.Parsimmon
+
 // https://www.wikiwand.com/en/RIS_(file_format)#/Tags
 // 参照のタイプ（最初のタグである必要があります）
 let TY = "TY"
@@ -227,3 +229,52 @@ let AllTags =
     [ [ TY ]
       OrderLessTags
       [ ER ] ]
+
+let Headers = [ "Provider"; "Database"; "Content" ]
+
+type RISField =
+  { tag: string
+    value: string }
+
+
+let RISOrderLessTagParser =
+  OrderLessTags
+  |> List.map Parsimmon.str
+  |> Parsimmon.choose
+
+// JStageからダウンロードした.risファイルには、以下のようなメタデータが含まれている
+// Provider: Japan Science and Technology Agency
+// Database: J-STAGE
+// Content:text/plain; charset="utf-8"
+let HeaderParser =
+  Headers
+  |> List.map Parsimmon.str
+  |> Parsimmon.choose
+
+let RISHeaderFieldParser headerParser =
+  Parsimmon.seq2
+    (headerParser
+     |> Parsimmon.skip (Parsimmon.optionalWhitespace)
+     |> Parsimmon.skip (Parsimmon.str ":."))
+    (Parsimmon.regex(".*").orTry(Parsimmon.optionalWhitespace))
+  |> Parsimmon.skip ((Parsimmon.str "\n"))
+
+let RISFieldParser tagParser =
+  Parsimmon.seq2
+    (tagParser
+     |> Parsimmon.skip (Parsimmon.optionalWhitespace)
+     |> Parsimmon.skip (Parsimmon.str "-"))
+    (Parsimmon.regex(".*").orTry(Parsimmon.optionalWhitespace).map(fun s -> s.Trim()))
+  |> Parsimmon.skip ((Parsimmon.str "\n").orTry(Parsimmon.endOfFile))
+  |> Parsimmon.map (fun tuple ->
+       { tag = fst tuple
+         value = snd tuple })
+
+let RISRecordParser =
+  Parsimmon.seq3 (RISFieldParser(Parsimmon.str TY)) (Parsimmon.many (RISFieldParser RISOrderLessTagParser))
+    (RISFieldParser(Parsimmon.str ER))
+  |> Parsimmon.map (fun (ty, orderless, er) ->
+       Seq.concat
+         [ [ ty ]
+           orderless |> Seq.toList
+           [ er ] ])
