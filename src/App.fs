@@ -49,25 +49,27 @@ let useInputValue (initialValue: string) =
         |> Option.map (Seq.map (fun r -> r.value))
         |> Option.map (String.concat ": ")
 
-      let journalPart =
+      let journal =
         grouped
         |> Seq.tryFind (fun g -> (fst g) = "journal")
         |> Option.map snd
         |> Option.map (Seq.map (fun r -> r.value))
         |> Option.bind (Seq.tryHead)
-      // year, volume, issue, start, end
+
       let year =
         grouped
         |> Seq.tryFind (fun g -> (fst g) = "year")
         |> Option.map snd
         |> Option.map (Seq.map (fun r -> r.value))
         |> Option.bind (Seq.tryHead)
+
       let volume =
         grouped
         |> Seq.tryFind (fun g -> (fst g) = "volume")
         |> Option.map snd
         |> Option.map (Seq.map (fun r -> r.value))
         |> Option.bind (Seq.tryHead)
+
       let issue =
         grouped
         |> Seq.tryFind (fun g -> (fst g) = "issue")
@@ -89,16 +91,36 @@ let useInputValue (initialValue: string) =
         |> Option.map (Seq.map (fun r -> r.value))
         |> Option.bind (Seq.tryHead)
 
+      let volumeAndIssue =
+        volume
+        |> Option.map (fun v ->
+             issue
+             |> Option.map (fun iss -> sprintf "%s(%s)" v iss)
+             |> Option.defaultValue (sprintf "vol.%s" v))
+
+      let pageRange =
+        startp
+        |> Option.map (fun sp ->
+             endp
+             |> Option.map (fun ep -> sprintf "p.%s-%s" sp ep)
+             |> Option.defaultValue (sprintf "p.%s-" sp))
+
       let bibPart =
-        sprintf "%s, %s(%s), p.%s-%s." (year |> Option.defaultValue "YYYY") (volume |> Option.defaultValue "V")
-          (issue |> Option.defaultValue "I") (startp |> Option.defaultValue "S") (endp |> Option.defaultValue "E")
+        ([ journal; volumeAndIssue; year; pageRange ]
+         |> List.filter Option.isSome
+         |> List.map (fun fa -> fa.Value)
+         |> String.concat ", ")
+        + "."
+
       // https://jipsti.jst.go.jp/sist/handbook/sist02sup/sist02sup.htm#5.1.1
       let result =
-        String.concat ". "
-          [ (authorPart |> Option.defaultValue "A")
-            (titlePart |> Option.defaultValue "T")
-            (journalPart |> Option.defaultValue "J")
-            bibPart ]
+        [ [ authorPart; titlePart ]
+          |> List.filter Option.isSome
+          |> List.map (fun fa -> fa.Value)
+          [ bibPart ] ]
+        |> List.concat
+        |> String.concat ". "
+
       printfn "%s" result
     setValue (value)
 
