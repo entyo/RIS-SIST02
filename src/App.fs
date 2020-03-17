@@ -7,145 +7,141 @@ open RIS
 
 type SetState<'t> = 't -> unit
 
-// https://github.com/nojaf/fable-react-hooks-sample/blob/master/src/Bindings.fs#L7
-let useState<'t> (t: 't): 't * SetState<'t> = import "useState" "react"
-
-let useEffect (effect : unit -> Fable.Core.U2<unit, unit -> unit>) (dependsOn : obj array) : unit = import "useEffect" "react"
-
 let useInputValue (initialValue: string) =
-  let (value, setValue) = useState (initialValue)
+  let stateHook = Hooks.useState (initialValue)
 
   let onChange (e: Browser.Types.Event) =
-    let value: string = e.target?value   
-    setValue (value)
+    let value: string = e.target?value
+    stateHook.update (value)
 
-  let resetValue() = setValue (System.String.Empty)
+  let resetValue() = stateHook.update (System.String.Empty)
 
-  value, onChange, resetValue
+  stateHook.current, onChange, resetValue
 
-type Props = { sistStr: string }
+type Props =
+  { sistStr: string }
 
-let sistStrPreviewer (props: Props) =
-  p [] [str props.sistStr]
+let sistStrPreviewer (props: Props) = p [] [ str props.sistStr ]
 
-let Container () =
+let Container() =
   let (userInput, onUserInputChange, resetInputValue) = useInputValue ""
-  let (sistStr, setSistStr) = useState ""
+  let sistHook = Hooks.useState ""
   let placeholder =
     "TY  - CHAP\nAU  - Islam, Gazi\nPY  - 2014/07/29\nSP  - 1781\nEP  - 1783\nSN  - 978-1-4614-5584-4\nT1  - Social Identity Theory\nER  - "
-  
-  // https://github.com/nojaf/fable-react-hooks-sample/blob/master/src/UseEffect.fs#L28
-  useEffect (fun () ->
-    let headerRecordsPerser = (HeaderParser |> RISHeaderFieldParser) |> Parsimmon.many
-    let awesomeParser = (Parsimmon.seq2 headerRecordsPerser RISRecordParser) |> Parsimmon.map snd
-    let result = awesomeParser.parse userInput
-    if result.status then
-      let grouped =
-        (result.value
-         |> Seq.filter (fun r ->
-              (r.value = "" || System.Text.RegularExpressions.Regex.IsMatch(r.value, @"^\s+$")) |> not)
-         |> Seq.groupBy (fun v ->
-              match v.tag with
-              | "T1"
-              | "TI" -> "title"
-              | "AU" -> "author"
-              | "PY" -> "year"
-              | "JO" -> "journal"
-              | "VL" -> "volume"
-              | "IS" -> "issue"
-              | "SP" -> "start"
-              | "EP" -> "end"
-              | _ -> "others"))
 
-      let authorPart =
-        grouped
-        |> Seq.tryFind (fun g -> (fst g) = "author")
-        |> Option.map snd
-        |> Option.map (Seq.map (fun r -> r.value))
-        |> Option.map (String.concat ".; ")
+  let effectFn =
+    fun () ->
+      let headerRecordsPerser = (HeaderParser |> RISHeaderFieldParser) |> Parsimmon.many
+      let awesomeParser = (Parsimmon.seq2 headerRecordsPerser RISRecordParser) |> Parsimmon.map snd
+      let result = awesomeParser.parse userInput
+      if result.status then
+        let grouped =
+          (result.value
+           |> Seq.filter (fun r ->
+                (r.value = "" || System.Text.RegularExpressions.Regex.IsMatch(r.value, @"^\s+$")) |> not)
+           |> Seq.groupBy (fun v ->
+                match v.tag with
+                | "T1"
+                | "TI" -> "title"
+                | "AU" -> "author"
+                | "PY" -> "year"
+                | "JO" -> "journal"
+                | "VL" -> "volume"
+                | "IS" -> "issue"
+                | "SP" -> "start"
+                | "EP" -> "end"
+                | _ -> "others"))
 
-      let titlePart =
-        grouped
-        |> Seq.tryFind (fun g -> (fst g) = "title")
-        |> Option.map snd
-        |> Option.map (Seq.map (fun r -> r.value))
-        |> Option.map (String.concat ": ")
+        let authorPart =
+          grouped
+          |> Seq.tryFind (fun g -> (fst g) = "author")
+          |> Option.map snd
+          |> Option.map (Seq.map (fun r -> r.value))
+          |> Option.map (String.concat ".; ")
 
-      let journal =
-        grouped
-        |> Seq.tryFind (fun g -> (fst g) = "journal")
-        |> Option.map snd
-        |> Option.map (Seq.map (fun r -> r.value))
-        |> Option.bind (Seq.tryHead)
+        let titlePart =
+          grouped
+          |> Seq.tryFind (fun g -> (fst g) = "title")
+          |> Option.map snd
+          |> Option.map (Seq.map (fun r -> r.value))
+          |> Option.map (String.concat ": ")
 
-      let year =
-        grouped
-        |> Seq.tryFind (fun g -> (fst g) = "year")
-        |> Option.map snd
-        |> Option.map (Seq.map (fun r -> r.value))
-        |> Option.bind (Seq.tryHead)
+        let journal =
+          grouped
+          |> Seq.tryFind (fun g -> (fst g) = "journal")
+          |> Option.map snd
+          |> Option.map (Seq.map (fun r -> r.value))
+          |> Option.bind (Seq.tryHead)
 
-      let volume =
-        grouped
-        |> Seq.tryFind (fun g -> (fst g) = "volume")
-        |> Option.map snd
-        |> Option.map (Seq.map (fun r -> r.value))
-        |> Option.bind (Seq.tryHead)
+        let year =
+          grouped
+          |> Seq.tryFind (fun g -> (fst g) = "year")
+          |> Option.map snd
+          |> Option.map (Seq.map (fun r -> r.value))
+          |> Option.bind (Seq.tryHead)
 
-      let issue =
-        grouped
-        |> Seq.tryFind (fun g -> (fst g) = "issue")
-        |> Option.map snd
-        |> Option.map (Seq.map (fun r -> r.value))
-        |> Option.bind (Seq.tryHead)
+        let volume =
+          grouped
+          |> Seq.tryFind (fun g -> (fst g) = "volume")
+          |> Option.map snd
+          |> Option.map (Seq.map (fun r -> r.value))
+          |> Option.bind (Seq.tryHead)
 
-      let startp =
-        grouped
-        |> Seq.tryFind (fun g -> (fst g) = "start")
-        |> Option.map snd
-        |> Option.map (Seq.map (fun r -> r.value))
-        |> Option.bind (Seq.tryHead)
+        let issue =
+          grouped
+          |> Seq.tryFind (fun g -> (fst g) = "issue")
+          |> Option.map snd
+          |> Option.map (Seq.map (fun r -> r.value))
+          |> Option.bind (Seq.tryHead)
 
-      let endp =
-        grouped
-        |> Seq.tryFind (fun g -> (fst g) = "end")
-        |> Option.map snd
-        |> Option.map (Seq.map (fun r -> r.value))
-        |> Option.bind (Seq.tryHead)
+        let startp =
+          grouped
+          |> Seq.tryFind (fun g -> (fst g) = "start")
+          |> Option.map snd
+          |> Option.map (Seq.map (fun r -> r.value))
+          |> Option.bind (Seq.tryHead)
 
-      let volumeAndIssue =
-        volume
-        |> Option.map (fun v ->
-             issue
-             |> Option.map (fun iss -> sprintf "%s(%s)" v iss)
-             |> Option.defaultValue (sprintf "vol.%s" v))
+        let endp =
+          grouped
+          |> Seq.tryFind (fun g -> (fst g) = "end")
+          |> Option.map snd
+          |> Option.map (Seq.map (fun r -> r.value))
+          |> Option.bind (Seq.tryHead)
 
-      let pageRange =
-        startp
-        |> Option.map (fun sp ->
-             endp
-             |> Option.map (fun ep -> sprintf "p.%s-%s" sp ep)
-             |> Option.defaultValue (sprintf "p.%s-" sp))
+        let volumeAndIssue =
+          volume
+          |> Option.map (fun v ->
+               issue
+               |> Option.map (fun iss -> sprintf "%s(%s)" v iss)
+               |> Option.defaultValue (sprintf "vol.%s" v))
 
-      let bibPart =
-        ([ journal; volumeAndIssue; year; pageRange ]
-         |> List.filter Option.isSome
-         |> List.map (fun fa -> fa.Value)
-         |> String.concat ", ")
-        + "."
+        let pageRange =
+          startp
+          |> Option.map (fun sp ->
+               endp
+               |> Option.map (fun ep -> sprintf "p.%s-%s" sp ep)
+               |> Option.defaultValue (sprintf "p.%s-" sp))
 
-      // https://jipsti.jst.go.jp/sist/handbook/sist02sup/sist02sup.htm#5.1.1
-      let sist =
-        [ [ authorPart; titlePart ]
-          |> List.filter Option.isSome
-          |> List.map (fun fa -> fa.Value)
-          [ bibPart ] ]
-        |> List.concat
-        |> String.concat ". "
+        let bibPart =
+          ([ journal; volumeAndIssue; year; pageRange ]
+           |> List.filter Option.isSome
+           |> List.map (fun fa -> fa.Value)
+           |> String.concat ", ")
+          + "."
 
-      setSistStr sist |> Fable.Core.U2.Case1
-    else setSistStr "Failed to parse" |> Fable.Core.U2.Case1
-  ) [| userInput |]
+        // https://jipsti.jst.go.jp/sist/handbook/sist02sup/sist02sup.htm#5.1.1
+        let sist =
+          [ [ authorPart; titlePart ]
+            |> List.filter Option.isSome
+            |> List.map (fun fa -> fa.Value)
+            [ bibPart ] ]
+          |> List.concat
+          |> String.concat ". "
+
+        sistHook.update sist
+      else
+        sistHook.update "Failed to parse"
+  Hooks.useEffect (effectFn, [| userInput |])
 
   div []
     [ textarea
@@ -155,7 +151,7 @@ let Container () =
           Props.Rows 15
           Props.Class "ris-input" ] []
       button [ Props.DOMAttr.OnClick(fun _ -> resetInputValue()) ] [ str "消去" ]
-      sistStrPreviewer({ sistStr = sistStr }) ]
+      sistStrPreviewer ({ sistStr = sistHook.current }) ]
 
 
 let vdom = div [] [ ofFunction Container () [] ]
