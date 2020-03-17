@@ -21,7 +21,7 @@ let useInputValue (initialValue: string) =
 type Props =
   { sistStr: string }
 
-let sistStrPreviewer (props: Props) = p [] [ str props.sistStr ]
+let sistStrPreviewer (props: Props) = p [] [ str (if props.sistStr = "" then "RIS形式のCitationを入力してください" else props.sistStr) ]
 
 let sistStrFromRISFields (fields: seq<RISField>) =
   let grouped =
@@ -136,7 +136,7 @@ let Container() =
       let result = awesomeParser.parse userInput
       if result.status
       then sistHook.update (result.value |> sistStrFromRISFields)
-      else sistHook.update "Failed to parse"
+      else sistHook.update ""
 
   Hooks.useEffect (effectFn, [| userInput |])
 
