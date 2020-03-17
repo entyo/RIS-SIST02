@@ -7,8 +7,8 @@
   },
   "dependencies": {
     "@babel/core": "^7.8.7",
-    "fable-compiler": "^2.4.19",
-    "fable-loader": "^2.1.8",
+    "fable-compiler": "^2.4.21",
+    "fable-loader": "^2.1.9",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "webpack": "^4.42.0",
