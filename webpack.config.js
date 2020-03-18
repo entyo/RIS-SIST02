@@ -20,6 +20,10 @@ module.exports = {
       {
         test: /\.fs(x|proj)?$/,
         use: "fable-loader"
+      },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"]
       }
     ]
   }

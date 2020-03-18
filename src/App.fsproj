@@ -6,6 +6,9 @@
   <ItemGroup>
     <Compile Include="Either.fs" />
     <Compile Include="RIS.fs" />
+    <Compile Include="RISToSIST02.fs" />
+    <Compile Include="CopyToClipboard.fs" />
+    <Compile Include="SISTPreviewer.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
