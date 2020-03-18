@@ -1,0 +1,23 @@
+.preview-container {
+  border: 2px solid #000000;
+  width: 380px;
+  height: 300px;
+}
+
+.preview-container>p {
+  margin: 0px;
+}
+
+.preview-container>.placeholder {
+  margin: 0px;
+  color: gray;
+}
+
+.error-row {
+  color: red;
+}
+
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+}

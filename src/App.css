@@ -1,5 +1,22 @@
 @import "~normalize.css/normalize.css";
 
+h1 {
+  text-align: center;
+}
+
 .ris-input {
   width: 380px;
+  height: 300px;
+}
+
+.two-pain {
+  width: 800px;
+  margin: 80px auto;
+  display: flex;
+  justify-content: space-between;
+}
+
+.button-row {
+  display: flex;
+  justify-content: flex-end;
 }

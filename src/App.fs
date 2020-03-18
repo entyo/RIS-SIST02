@@ -24,7 +24,7 @@ let useInputValue (initialValue: option<string>) =
 // https://github.com/nkbt/react-copy-to-clipboard/blob/master/src/Component.js#L7
 let Container() =
   let (userInput, onUserInputChange, resetInputValue) = useInputValue None
-  let sistHook = Hooks.useState<SISTStr> None
+  let sistHook = Hooks.useState<option<either<string, string>>> None
 
   let effectFn =
     fun () ->
@@ -45,21 +45,42 @@ let Container() =
 
   Hooks.useEffect (effectFn, [| userInput |])
 
+  let err =
+    match sistHook.current with
+    | Some fa ->
+        match fa with
+        | Right _ -> ""
+        | Left err -> err
+    | None -> ""
+
   let textAreaValue =
     match userInput with
     | Some txt -> txt
     | None -> ""
 
+  let sistStr =
+    match sistHook.current with
+    | Some fa ->
+        match fa with
+        | Right v -> Some v
+        | Left _ -> None
+    | None -> None
+
   div []
-    [ textarea
-        [ Props.Value textAreaValue
-          Props.DOMAttr.OnChange onUserInputChange
-          Props.Placeholder
-            "TY  - CHAP\nAU  - Islam, Gazi\nPY  - 2014/07/29\nSP  - 1781\nEP  - 1783\nSN  - 978-1-4614-5584-4\nT1  - Social Identity Theory\nER  - "
-          Props.Rows 15
-          Props.Class "ris-input" ] []
-      button [ Props.DOMAttr.OnClick(fun _ -> resetInputValue()) ] [ str "消去" ]
-      sistStrPreviewer ({ sistStr = sistHook.current }) ]
+    [ h1 [] [ str "RIS -> SIST02 Converter" ]
+      div [ Props.ClassName "two-pain" ]
+        [ div []
+            [ textarea
+                [ Props.Value textAreaValue
+                  Props.DOMAttr.OnChange onUserInputChange
+                  Props.Placeholder
+                    "TY  - JOUR\nAU  - Plumbaum, Till\nAU  - Wu, Songxuan\nAU  - De Luca, Ernesto\nAU  - Albayrak, Sahin\nPY  - 2011/01/01\nSP  - \nT1  - User Modeling for the Social Semantic Web\nVL  - 781\nJO  - CEUR Workshop Proceedings\nER  - "
+                  Props.Rows 15
+                  Props.Class "ris-input" ] []
+              div [ Props.Class "error-row" ] [ str err ]
+              div [ Props.ClassName "button-row" ]
+                [ button [ Props.DOMAttr.OnClick(fun _ -> resetInputValue()) ] [ str "消去" ] ] ]
+          sistStrPreviewer ({ sistStr = sistStr }) ] ]
 
 
 let vdom = div [] [ ofFunction Container () [] ]
