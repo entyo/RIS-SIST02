@@ -5,7 +5,15 @@ open Fable.Core.JsInterop
 open Fable.Parsimmon
 open RIS
 
-type SetState<'t> = 't -> unit
+type CopyToClipboardProps =
+  | Text of string
+  | Children of ReactElement
+  | OnCopy of (unit -> unit)
+  | Options of obj
+
+let inline copyToClipboard (props: CopyToClipboardProps list) (elems: ReactElement list): ReactElement =
+  // https://github.com/nkbt/react-copy-to-clipboard#usage
+  ofImport "CopyToClipboard" "react-copy-to-clipboard" (keyValueList Fable.Core.CaseRules.LowerFirst props) elems
 
 let useInputValue (initialValue: string) =
   let stateHook = Hooks.useState (initialValue)
@@ -21,7 +29,14 @@ let useInputValue (initialValue: string) =
 type Props =
   { sistStr: string }
 
-let sistStrPreviewer (props: Props) = p [] [ str (if props.sistStr = "" then "RIS形式のCitationを入力してください" else props.sistStr) ]
+let sistStrPreviewer (props: Props) =
+  let copiedHooks = Hooks.useState false
+  div []
+    [ p [] [ str (if props.sistStr = "" then "RIS形式のCitationを入力してください" else props.sistStr) ]
+      copyToClipboard
+        [ Text props.sistStr
+          OnCopy(fun () -> copiedHooks.update true) ] [ button [] [str "クリップボードにコピー"] ]
+      span [] [ str (if copiedHooks.current then "コピーしました" else "") ] ]
 
 let sistStrFromRISFields (fields: seq<RISField>) =
   let grouped =
@@ -125,6 +140,7 @@ let sistStrFromRISFields (fields: seq<RISField>) =
   |> List.concat
   |> String.concat ". "
 
+// https://github.com/nkbt/react-copy-to-clipboard/blob/master/src/Component.js#L7
 let Container() =
   let (userInput, onUserInputChange, resetInputValue) = useInputValue ""
   let sistHook = Hooks.useState ""
