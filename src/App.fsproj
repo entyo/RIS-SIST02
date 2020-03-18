@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Either.fs" />
     <Compile Include="RIS.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>

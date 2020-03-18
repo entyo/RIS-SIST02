@@ -4,6 +4,7 @@ open Fable.React
 open Fable.Core.JsInterop
 open Fable.Parsimmon
 open RIS
+open Either
 
 type CopyToClipboardProps =
   | Text of string
@@ -15,28 +16,41 @@ let inline copyToClipboard (props: CopyToClipboardProps list) (elems: ReactEleme
   // https://github.com/nkbt/react-copy-to-clipboard#usage
   ofImport "CopyToClipboard" "react-copy-to-clipboard" (keyValueList Fable.Core.CaseRules.LowerFirst props) elems
 
-let useInputValue (initialValue: string) =
+let useInputValue (initialValue: option<string>) =
   let stateHook = Hooks.useState (initialValue)
 
   let onChange (e: Browser.Types.Event) =
     let value: string = e.target?value
-    stateHook.update (value)
+    stateHook.update (value |> Some)
 
-  let resetValue() = stateHook.update (System.String.Empty)
+  let resetValue() = stateHook.update None
 
   stateHook.current, onChange, resetValue
 
+type SISTStr = option<either<string, string>>
+
 type Props =
-  { sistStr: string }
+  { sistStr: SISTStr }
 
 let sistStrPreviewer (props: Props) =
   let copiedHooks = Hooks.useState false
-  div []
-    [ p [] [ str (if props.sistStr = "" then "RIS形式のCitationを入力してください" else props.sistStr) ]
-      copyToClipboard
-        [ Text props.sistStr
-          OnCopy(fun () -> copiedHooks.update true) ] [ button [] [str "クリップボードにコピー"] ]
-      span [] [ str (if copiedHooks.current then "コピーしました" else "") ] ]
+
+  Hooks.useEffect ((fun () -> copiedHooks.update false), [| props.sistStr |])
+
+  let result =
+    match props.sistStr with
+    | Some parseResult -> parseResult
+    | None -> Left "RIS形式のデータを入力してください。"
+
+  match result with
+  | Right sist ->
+      div []
+        [ p [] [ str sist ]
+          copyToClipboard
+            [ Text sist
+              OnCopy(fun () -> copiedHooks.update true) ] [ button [] [ str "クリップボードにコピー" ] ]
+          span [] [ str (if copiedHooks.current then "コピーしました" else "") ] ]
+  | Left err -> p [ Props.ClassName "error" ] [ str err ]
 
 let sistStrFromRISFields (fields: seq<RISField>) =
   let grouped =
@@ -142,23 +156,36 @@ let sistStrFromRISFields (fields: seq<RISField>) =
 
 // https://github.com/nkbt/react-copy-to-clipboard/blob/master/src/Component.js#L7
 let Container() =
-  let (userInput, onUserInputChange, resetInputValue) = useInputValue ""
-  let sistHook = Hooks.useState ""
+  let (userInput, onUserInputChange, resetInputValue) = useInputValue None
+  let sistHook = Hooks.useState<SISTStr> None
 
   let effectFn =
     fun () ->
-      let headerRecordsPerser = (HeaderParser |> RISHeaderFieldParser) |> Parsimmon.many
-      let awesomeParser = (Parsimmon.seq2 headerRecordsPerser RISRecordParser) |> Parsimmon.map snd
-      let result = awesomeParser.parse userInput
-      if result.status
-      then sistHook.update (result.value |> sistStrFromRISFields)
-      else sistHook.update ""
+      match userInput with
+      | Some input ->
+          let headerRecordsPerser = (HeaderParser |> RISHeaderFieldParser) |> Parsimmon.many
+          let awesomeParser = (Parsimmon.seq2 headerRecordsPerser RISRecordParser) |> Parsimmon.map snd
+          let result = awesomeParser.parse input
+          if result.status then
+            sistHook.update
+              (result.value
+               |> sistStrFromRISFields
+               |> Right
+               |> Some)
+          else
+            sistHook.update (Left "不正な入力です" |> Some)
+      | None -> sistHook.update None
 
   Hooks.useEffect (effectFn, [| userInput |])
 
+  let textAreaValue =
+    match userInput with
+    | Some txt -> txt
+    | None -> ""
+
   div []
     [ textarea
-        [ Props.Value userInput
+        [ Props.Value textAreaValue
           Props.DOMAttr.OnChange onUserInputChange
           Props.Placeholder
             "TY  - CHAP\nAU  - Islam, Gazi\nPY  - 2014/07/29\nSP  - 1781\nEP  - 1783\nSN  - 978-1-4614-5584-4\nT1  - Social Identity Theory\nER  - "
