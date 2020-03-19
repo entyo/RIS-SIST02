@@ -24,7 +24,7 @@ let sistStrPreviewer (props: Props) =
       | Some fa ->
           match fa with
           | Some s -> p [] [ str s ]
-          | None -> p [] [ str "" ]
+          | None -> p [ Props.ClassName "no-select" ] [ str "ValidなRISを入力すると、ここにSIST-02形式の引用文が出力されます。" ]
       | None -> p [ Props.ClassName "placeholder" ] [ str placeholder ]
     div [ Props.ClassName "preview-container" ] [ sist ]
 
