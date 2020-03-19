@@ -15,7 +15,7 @@ let useInputValue (initialValue: option<string>) =
 
   let onChange (e: Browser.Types.Event) =
     let value: string = e.target?value
-    stateHook.update (value |> Some)
+    stateHook.update (if value = "" then None else value |> Some)
 
   let resetValue() = stateHook.update None
 
@@ -24,7 +24,7 @@ let useInputValue (initialValue: option<string>) =
 // https://github.com/nkbt/react-copy-to-clipboard/blob/master/src/Component.js#L7
 let Container() =
   let (userInput, onUserInputChange, resetInputValue) = useInputValue None
-  let sistHook = Hooks.useState<option<either<string, string>>> None
+  let sistHook = Hooks.useState<option<option<string>>> None
 
   let effectFn =
     fun () ->
@@ -37,10 +37,10 @@ let Container() =
             sistHook.update
               (result.value
                |> sistStrFromRISFields
-               |> Right
+               |> Some
                |> Some)
           else
-            sistHook.update (Left "不正な入力です" |> Some)
+            sistHook.update (None |> Some)
       | None -> sistHook.update None
 
   Hooks.useEffect (effectFn, [| userInput |])
@@ -49,22 +49,14 @@ let Container() =
     match sistHook.current with
     | Some fa ->
         match fa with
-        | Right _ -> ""
-        | Left err -> err
+        | Some _ -> ""
+        | None -> "入力内容が不正です"
     | None -> ""
 
   let textAreaValue =
     match userInput with
     | Some txt -> txt
     | None -> ""
-
-  let sistStr =
-    match sistHook.current with
-    | Some fa ->
-        match fa with
-        | Right v -> Some v
-        | Left _ -> None
-    | None -> None
 
   div []
     [ h1 [] [ str "RIS -> SIST02 Converter" ]
@@ -80,7 +72,7 @@ let Container() =
               div [ Props.Class "error-row" ] [ str err ]
               div [ Props.ClassName "button-row" ]
                 [ button [ Props.DOMAttr.OnClick(fun _ -> resetInputValue()) ] [ str "消去" ] ] ]
-          sistStrPreviewer ({ sistStr = sistStr }) ] ]
+          sistStrPreviewer ({ sistStr = sistHook.current }) ] ]
 
 
 let vdom = div [] [ ofFunction Container () [] ]

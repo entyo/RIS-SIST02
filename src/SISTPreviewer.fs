@@ -5,7 +5,7 @@ open CopyToClipboard
 
 Fable.Core.JsInterop.importAll "./SIST02Previewer.css"
 
-type SISTStr = option<string>
+type SISTStr = option<option<string>>
 
 type Props =
   { sistStr: SISTStr }
@@ -18,22 +18,27 @@ let sistStrPreviewer (props: Props) =
 
   Hooks.useEffect ((fun () -> copiedHooks.update false), [| props.sistStr |])
 
-  let previewer (fa: string option) =
+  let previewer (sist: SISTStr) =
     let sist =
-      match fa with
-      | Some s -> p [] [ str s ]
+      match sist with
+      | Some fa ->
+          match fa with
+          | Some s -> p [] [ str s ]
+          | None -> p [] [ str "" ]
       | None -> p [ Props.ClassName "placeholder" ] [ str placeholder ]
     div [ Props.ClassName "preview-container" ] [ sist ]
 
   match props.sistStr with
-  | Some sist ->
-      div []
-        [ sist
-          |> Some
-          |> previewer
-          div [ Props.ClassName "button-row" ]
-            [ copyToClipboard
-                [ Text sist
-                  OnCopy(fun () -> copiedHooks.update true) ]
-                [ button [ Props.Disabled copiedHooks.current ] [ str (if copiedHooks.current then "コピーしました" else "クリップボードにコピー") ] ] ] ]
-  | None -> None |> previewer
+  | Some fa ->
+      match fa with
+      | Some sist ->
+          div []
+            [ props.sistStr |> previewer
+              div [ Props.ClassName "button-row" ]
+                [ copyToClipboard
+                    [ Text sist
+                      OnCopy(fun () -> copiedHooks.update true) ]
+                    [ button [ Props.Disabled copiedHooks.current ]
+                        [ str (if copiedHooks.current then "コピーしました" else "クリップボードにコピー") ] ] ] ]
+      | None -> props.sistStr |> previewer
+  | None -> props.sistStr |> previewer
