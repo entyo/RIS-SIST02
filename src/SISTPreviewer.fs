@@ -25,7 +25,7 @@ let sistStrPreviewer (props: Props) =
           match fa with
           | Some s -> p [] [ str s ]
           | None -> p [ Props.ClassName "no-select" ] [ str "RIS形式のCitationを入力してください" ]
-      | None -> p [ Props.ClassName "placeholder" ] [ str placeholder ]
+      | None -> p [ Props.ClassName "placeholder no-select" ] [ str placeholder ]
     div [ Props.ClassName "preview-container" ] [ sist ]
 
   let (sist, copiable) =
@@ -35,7 +35,7 @@ let sistStrPreviewer (props: Props) =
         | Some str -> (str, true)
         | None -> ("", false)
     | None -> ("", false)
-  
+
   printfn "copiedHooks.current %b, copiable %b" copiedHooks.current copiable
 
   div [ Props.ClassName "container" ]
@@ -44,5 +44,5 @@ let sistStrPreviewer (props: Props) =
         [ copyToClipboard
             [ Text sist
               OnCopy(fun () -> copiedHooks.update true) ]
-            [ button [ (copiedHooks.current && copiable) |> not |> Props.Disabled ]
+            [ button [ (copiedHooks.current || copiable |> not) |> Props.Disabled ]
                 [ str (if copiedHooks.current then "コピーしました" else "クリップボードにコピー") ] ] ] ]
