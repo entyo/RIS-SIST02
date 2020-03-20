@@ -4,25 +4,22 @@
 }
 
 .preview-container {
-  border: 2px solid #000000;
   width: 480px;
   height: 100%;
   padding: 20px 28px;
   font-size: 24px;
   line-height: 32px;
+  background-origin: none;
+  color: #dddddd;
 }
 
-.preview-container > p {
+.preview-container>p {
   margin: 0px;
 }
 
-.preview-container > .placeholder {
+.preview-container>.placeholder {
   margin: 0px;
   color: gray;
-}
-
-.error-row {
-  color: red;
 }
 
 .button-row {
@@ -43,5 +40,5 @@
   /* Internet Explorer/Edge */
   user-select: none;
   /* Non-prefixed version, currently supported by Chrome, Opera and Firefox */
-  color: red;
+  color: rgb(255, 128, 0);
 }

@@ -59,7 +59,7 @@ let Container() =
     | None -> ""
 
   div []
-    [ h1 [] [ str "RIS -> SIST02 Converter" ]
+    [ header [] [h1 [] [ str "RIS -> SIST02 Converter" ]]
       div []
         [ div [ Props.ClassName "two-pain" ]
             [ div []
@@ -80,7 +80,7 @@ let Container() =
                           Props.Id fileInputId
                           Props.Name fileInputId
                           Props.Accept ".ris" ]
-                      label [ Props.HtmlFor fileInputId ]
+                      label [ Props.HtmlFor fileInputId; ]
                         [ str
                             (if (filenameHook.current |> Option.isNone) then
                               ".risファイルをアップロード"
@@ -89,6 +89,7 @@ let Container() =
                       button
                         [ Props.DOMAttr.OnClick(fun _ -> resetInputValue())
                           Props.Disabled(sistHook.current |> Option.isNone) ] [ str "消去" ] ] ]
+              hr []
               sistStrPreviewer ({ sistStr = sistHook.current }) ] ] ]
 
 
