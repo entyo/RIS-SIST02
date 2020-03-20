@@ -7,6 +7,7 @@ open RIS
 open SISTPreviewer
 open RISToSIST02
 open Fable.FileInput.React
+open Fable.FontAwesome
 
 importAll "./App.css"
 
@@ -59,13 +60,13 @@ let Container() =
     | None -> ""
 
   div []
-    [ header [] [h1 [] [ str "RIS -> SIST02 Converter" ]]
+    [ header [] [ h1 [] [ str "RIS -> SIST02 Converter" ] ]
       div []
         [ div [ Props.ClassName "two-pain" ]
             [ div []
                 [ textarea
                     [ Props.Value textAreaValue
-                      Props.DOMAttr.OnChange (fun e -> e.target?value |> onUserInputChange)
+                      Props.DOMAttr.OnChange(fun e -> e.target?value |> onUserInputChange)
                       Props.Placeholder
                         "TY  - JOUR\nAU  - Plumbaum, Till\nAU  - Wu, Songxuan\nAU  - De Luca, Ernesto\nAU  - Albayrak, Sahin\nPY  - 2011/01/01\nSP  - \nT1  - User Modeling for the Social Semantic Web\nVL  - 781\nJO  - CEUR Workshop Proceedings\nER  - "
                       Props.Rows 15
@@ -73,22 +74,25 @@ let Container() =
                   div [ Props.ClassName "button-row" ]
                     [ singleFileInput
                         [ OnTextReceived(fun t ->
-                            t.Data |> onUserInputChange;
+                            t.Data |> onUserInputChange
                             t.Name
                             |> Some
                             |> filenameHook.update)
                           Props.Id fileInputId
                           Props.Name fileInputId
                           Props.Accept ".ris" ]
-                      label [ Props.HtmlFor fileInputId; ]
-                        [ str
+                      label [ Props.HtmlFor fileInputId ]
+                        [ Fa.span [ Fa.Solid.FileUpload; Fa.FixedWidth ] []
+                          str
                             (if (filenameHook.current |> Option.isNone) then
                               ".risファイルをアップロード"
                              else
                                filenameHook.current.Value) ]
                       button
                         [ Props.DOMAttr.OnClick(fun _ -> resetInputValue())
-                          Props.Disabled(sistHook.current |> Option.isNone) ] [ str "消去" ] ] ]
+                          Props.Disabled(sistHook.current |> Option.isNone) ]
+                        [ Fa.span [ Fa.Solid.Trash; Fa.FixedWidth ] []
+                          str "入力を消去" ] ] ]
               hr []
               sistStrPreviewer ({ sistStr = sistHook.current }) ] ] ]
 

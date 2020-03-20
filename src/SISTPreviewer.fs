@@ -2,6 +2,7 @@ module SISTPreviewer
 
 open Fable.React
 open CopyToClipboard
+open Fable.FontAwesome
 
 Fable.Core.JsInterop.importAll "./SIST02Previewer.css"
 
@@ -45,4 +46,9 @@ let sistStrPreviewer (props: Props) =
             [ Text sist
               OnCopy(fun () -> copiedHooks.update true) ]
             [ button [ (copiedHooks.current || copiable |> not) |> Props.Disabled ]
-                [ str (if copiedHooks.current then "コピーしました" else "クリップボードにコピー") ] ] ] ]
+                (if copiedHooks.current then
+                  [ Fa.span [ Fa.Solid.Check; Fa.FixedWidth ] []
+                    str "コピーしました" ]
+                 else
+                   [ Fa.span [ Fa.Solid.Clone; Fa.FixedWidth ] []
+                     str "クリップボードにコピー" ]) ] ] ]
