@@ -28,6 +28,12 @@ let useInputValue (initialValue: option<string>) =
 
   stateHook.current, onChange, resetValue
 
+let fileInputId = "fileinput"
+
+// Reset <input type="file">
+[<Fable.Core.Emit("const elem = document.getElementById($0); if (elem && elem.value) { elem.value = '' }")>]
+let resetFileInput (id: string) : unit = Fable.Core.Util.jsNative
+
 // https://github.com/nkbt/react-copy-to-clipboard/blob/master/src/Component.js#L7
 let Container() =
   let (userInput, onUserInputChange, resetInputValue) = useInputValue None
@@ -48,7 +54,9 @@ let Container() =
                |> Some)
           else
             sistHook.update (None |> Some)
-      | None -> sistHook.update None
+      | None ->
+        sistHook.update None
+        resetFileInput fileInputId
 
   Hooks.useEffect (effectFn, [| userInput |])
 
@@ -70,7 +78,7 @@ let Container() =
                       Props.Rows 15
                       Props.Class "ris-input" ] []
                   div [ Props.ClassName "button-row" ]
-                    [ singleFileInput [ OnTextReceived(File >> onUserInputChange) ]
+                    [ singleFileInput [ OnTextReceived(File >> onUserInputChange); Props.Id fileInputId ]
                       button
                         [ Props.DOMAttr.OnClick(fun _ -> resetInputValue())
                           Props.Disabled(sistHook.current |> Option.isNone) ] [ str "消去" ] ] ]
