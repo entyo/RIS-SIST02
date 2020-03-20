@@ -12,7 +12,7 @@ type Props =
   { sistStr: SISTStr }
 
 let placeholder =
-  "Plumbaum, Till.; Wu, Songxuan.; De Luca, Ernesto.; Albayrak, Sahin. User Modeling for the Social Semantic Web. CEUR Workshop Proceedings, vol.781, 2011/01/01."
+  "Gurrin, Cathal.; Joho, Hideo.; Hopfgartner, Frank.; Zhou, Liting.; Albatal, Rami. NTCIR Lifelog: The First Test Collection for Lifelog Research. 2016/07/07, p.705-708."
 
 let sistStrPreviewer (props: Props) =
   let copiedHooks = Hooks.useState false

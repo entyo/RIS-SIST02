@@ -68,7 +68,7 @@ let Container() =
                     [ Props.Value textAreaValue
                       Props.DOMAttr.OnChange(fun e -> e.target?value |> onUserInputChange)
                       Props.Placeholder
-                        "TY  - JOUR\nAU  - Plumbaum, Till\nAU  - Wu, Songxuan\nAU  - De Luca, Ernesto\nAU  - Albayrak, Sahin\nPY  - 2011/01/01\nSP  - \nT1  - User Modeling for the Social Semantic Web\nVL  - 781\nJO  - CEUR Workshop Proceedings\nER  - "
+                        "TY  - BOOK\nAU  - Gurrin, Cathal\nAU  - Joho, Hideo\nAU  - Hopfgartner, Frank\nAU  - Zhou, Liting\nAU  - Albatal, Rami\nPY  - 2016/07/07\nSP  - 705\nEP  - 708\nT1  - NTCIR Lifelog: The First Test Collection for Lifelog Research\nDO  - 10.1145/2911451.2914680\nER  - "
                       Props.Rows 15
                       Props.Class "ris-input" ] []
                   div [ Props.ClassName "button-row" ]
