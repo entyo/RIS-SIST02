@@ -24,21 +24,25 @@ let sistStrPreviewer (props: Props) =
       | Some fa ->
           match fa with
           | Some s -> p [] [ str s ]
-          | None -> p [ Props.ClassName "no-select" ] [ str "ValidなRISを入力すると、ここにSIST-02形式の引用文が出力されます。" ]
+          | None -> p [ Props.ClassName "no-select" ] [ str "RIS形式のCitationを入力してください" ]
       | None -> p [ Props.ClassName "placeholder" ] [ str placeholder ]
     div [ Props.ClassName "preview-container" ] [ sist ]
 
-  match props.sistStr with
-  | Some fa ->
-      match fa with
-      | Some sist ->
-          div []
-            [ props.sistStr |> previewer
-              div [ Props.ClassName "button-row" ]
-                [ copyToClipboard
-                    [ Text sist
-                      OnCopy(fun () -> copiedHooks.update true) ]
-                    [ button [ Props.Disabled copiedHooks.current ]
-                        [ str (if copiedHooks.current then "コピーしました" else "クリップボードにコピー") ] ] ] ]
-      | None -> props.sistStr |> previewer
-  | None -> props.sistStr |> previewer
+  let (sist, copiable) =
+    match props.sistStr with
+    | Some fa ->
+        match fa with
+        | Some str -> (str, true)
+        | None -> ("", false)
+    | None -> ("", false)
+  
+  printfn "copiedHooks.current %b, copiable %b" copiedHooks.current copiable
+
+  div [ Props.ClassName "container" ]
+    [ props.sistStr |> previewer
+      div [ Props.ClassName "button-row" ]
+        [ copyToClipboard
+            [ Text sist
+              OnCopy(fun () -> copiedHooks.update true) ]
+            [ button [ (copiedHooks.current && copiable) |> not |> Props.Disabled ]
+                [ str (if copiedHooks.current then "コピーしました" else "クリップボードにコピー") ] ] ] ]

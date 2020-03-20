@@ -1,19 +1,31 @@
 @import "~normalize.css/normalize.css";
 
+body {
+  font-family: "Roboto", arial, sans-serif;
+}
+
 h1 {
   text-align: center;
 }
 
 .ris-input {
-  width: 380px;
-  height: 300px;
+  width: 480px;
+  height: 100%;
+  padding: 20px 28px;
+  font-size: 24px;
+  line-height: 32px;
 }
 
 .two-pain {
-  width: 800px;
   margin: 80px auto;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+}
+
+/* 左側のペイン */
+.two-pain > div {
+  display: flex;
+  flex-direction: column;
 }
 
 .button-row {
