@@ -47,7 +47,7 @@ h1 {
 }
 
 /* 左側のペイン */
-.two-pain > div {
+.two-pain>div {
   display: flex;
   flex-direction: column;
   background-color: #141f2d;
@@ -68,7 +68,7 @@ h1 {
   z-index: -1;
 }
 
-#fileinput + label {
+#fileinput+label {
   display: block;
   background-color: rgb(32, 44, 61);
   color: white;
@@ -84,8 +84,8 @@ h1 {
   margin-right: 1em;
 }
 
-#fileinput:focus + label,
-#fileinput + label:hover {
+#fileinput:focus+label,
+#fileinput+label:hover {
   background-color: rgb(64, 88, 122);
 }
 
@@ -123,4 +123,14 @@ button:disabled {
 
 .fa-fw {
   margin-right: 0.5em;
+}
+
+.credit {
+  text-align: center;
+  color: #dddddd;
+}
+
+a {
+  color: #17a1f6;
+  text-decoration: none;
 }

@@ -94,7 +94,10 @@ let Container() =
                         [ Fa.span [ Fa.Solid.Trash; Fa.FixedWidth ] []
                           str "入力を消去" ] ] ]
               hr []
-              sistStrPreviewer ({ sistStr = sistHook.current }) ] ] ]
+              sistStrPreviewer ({ sistStr = sistHook.current })
+            ] ]
+      p [ Props.ClassName "credit" ] [str "つくったひと: "; a [ Props.Href "https://twitter.com/e_ntyo" ] [str "@e_ntyo"]]
+    ]
 
 
 let vdom = div [] [ ofFunction Container () [] ]
