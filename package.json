@@ -21,6 +21,7 @@
     "webpack-dev-server": "^3.10.3"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.9.0",
     "file-loader": "^6.0.0"
   }
 }
