@@ -4,5 +4,7 @@
     "production": {
       "sourceMaps": false
     }
-  }
+  },
+  "module": "es2015",
+  "ecma": "es2015"
 }

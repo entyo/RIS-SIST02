@@ -7,7 +7,7 @@ const path = require("path");
 module.exports = {
   mode: "development",
   entry: "./src/App.fsproj",
-  devtool: "inline-source-map",
+  devtool: "source-map",
   output: {
     path: path.join(__dirname, "./public"),
     filename: "bundle.js"
@@ -20,11 +20,19 @@ module.exports = {
     rules: [
       {
         test: /\.fs(x|proj)?$/,
+        exclude: "/node_modules/",
         use: {
           loader: "fable-loader",
           options: {
             babel: {
-              presets: [["@babel/preset-env", { modules: false }]]
+              presets: [
+                [
+                  "@babel/preset-env",
+                  {
+                    modules: false
+                  }
+                ]
+              ]
             }
           }
         }
